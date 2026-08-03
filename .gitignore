@@ -1,0 +1,14 @@
+# Ignore everything by default
+*
+
+# Keep only these
+!.gitignore
+!README.md
+!requirements.txt
+!notebooks/
+!notebooks/**
+
+# Still ignore junk inside notebooks
+notebooks/**/.ipynb_checkpoints/
+notebooks/**/__pycache__/
+notebooks/**/_legacy_narrative_v1/
