@@ -15,10 +15,10 @@ This repository contains the **reproducible compute scripts**, reference result 
 ## Quick start
 
 ```bash
-git clone <YOUR_REPO_URL>
-cd HIV-ESM-2
+git clone https://github.com/biodancerwangzhi/HIV-OOD.git
+cd HIV-OOD
 
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -U pip
 pip install -r requirements.txt

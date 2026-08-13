@@ -12,5 +12,3 @@
 notebooks/**/.ipynb_checkpoints/
 notebooks/**/__pycache__/
 notebooks/**/_legacy_narrative_v1/
-# References moved to notebooks/data
-notebooks/data/refs/
