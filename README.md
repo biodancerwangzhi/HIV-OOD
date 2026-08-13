@@ -77,9 +77,6 @@ Canonical raw inputs (Stanford HIV Drug Resistance Database genotype–phenotype
 
 ```
 work/hivdb_full/{PI,NRTI,NNRTI,INI,CAI}_DataSet.Full.txt
-work/hivdb_full/refs/*.fasta
-```
-
 Please cite HIVDB when using these data:
 
 > Rhee SY et al. Human immunodeficiency virus reverse transcriptase and protease sequence database. *Nucleic Acids Research*.
@@ -118,3 +115,15 @@ HIV-ESM-2/
 ## License
 
 Code license is not finalized in-repo yet. Add a `LICENSE` before making the repository public.
+
+### 参考序列 (已移到 notebooks/data/refs/)
+- P04585.fasta (PR/RT/IN reference)
+- P04591.fasta (CA reference)
+
+### 原始数据下载（HIVDB Full genotype-phenotype tables）
+```bash
+python notebooks/scripts/fig0_download_hivdb.py
+```
+下载后运行 `fig0_prepare_data.py` 即可。
+
+**注意**：Stanford HIVDB 会在定期更新这些表。复现论文结果时建议使用固定快照（若有），否则 AUROC 会略有浮动。

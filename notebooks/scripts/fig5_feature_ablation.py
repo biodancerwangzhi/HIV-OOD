@@ -33,7 +33,7 @@ from sklearn.preprocessing import StandardScaler
 PROJ = Path(__file__).resolve().parent.parent.parent
 EMB = PROJ / "work" / "emb_full"
 PREP = PROJ / "work" / "prepared"
-REF_DIR = PROJ / "work" / "hivdb_full" / "refs"
+REF_DIR = PROJ / "notebooks" / "data" / "refs"
 OUT = PROJ / "work" / "results" / "probe_fig5.csv"
 GENE_OF = {"PI": "PR", "NRTI": "RT", "NNRTI": "RT", "INI": "IN"}
 DRUGS = {

@@ -1,14 +1,23 @@
 """Prepare HIVDB Full genotype-phenotype tables for all downstream scripts.
 
-Canonical data source: work/hivdb_full/{CLASS}_DataSet.Full.txt
+Canonical raw inputs live under notebooks/data/hivdb_full/:
+  {PI,NRTI,NNRTI,INI,CAI}_DataSet.Full.txt
+notebooks/data/refs/P04585.fasta
+  notebooks/data/refs/P04591.fasta
+
+Optional download from Stanford HIVDB (tables may update over time):
+  mkdir -p notebooks/data/hivdb_full
+  cd notebooks/data/hivdb_full
+  for f in PI NRTI NNRTI INI CAI; do
+    curl -L -O "https://hivdb.stanford.edu/download/GenoPhenoDatasets/${f}_DataSet.Full.txt"
+  done
+
 Outputs:
   work/prepared/{PI,NRTI,NNRTI,INI,CAI}.csv
   work/prepared/summary.json
-  results/notebooks/00_data/*.csv  (sample caliber / subtype stats for fig1)
-
-This replaces the broken earlier version that pointed at notebooks/scripts as PROJ
-and read filtered repo/data/raw files without PtID/Subtype.
+  results/notebooks/00_data/*.csv
 """
+
 from __future__ import annotations
 
 import json
@@ -18,8 +27,8 @@ import numpy as np
 import pandas as pd
 
 PROJ = Path(__file__).resolve().parent.parent.parent
-RAW_DIR = PROJ / "work" / "hivdb_full"
-REF_DIR = RAW_DIR / "refs"
+RAW_DIR = PROJ / "notebooks" / "data" / "hivdb_full"
+REF_DIR = PROJ / "notebooks" / "data" / "refs"
 PREP_DIR = PROJ / "work" / "prepared"
 OUT_DIR = PROJ / "results" / "notebooks" / "00_data"
 
@@ -89,7 +98,10 @@ def reconstruct_one(row: pd.Series, position_cols: list[str], reference: str) ->
 def prepare_class(drug_class: str, refs: dict[str, str]) -> tuple[pd.DataFrame, dict]:
     path = RAW_DIR / f"{drug_class}_DataSet.Full.txt"
     if not path.exists():
-        raise FileNotFoundError(f"Missing {path}")
+        raise FileNotFoundError(
+            f"Missing {path}\n"
+            "Place Full tables under notebooks/data/hivdb_full/ (see module docstring)."
+        )
     df = pd.read_csv(path, sep="\t", dtype=str)
     gene = GENE_OF_CLASS[drug_class]
     pos_cols = get_position_columns(df)

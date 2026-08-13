@@ -177,3 +177,6 @@ venv/bin/python -m jupyter nbconvert --to notebook --execute --inplace notebooks
 | `results/notebooks/fig4/fig4_ram_to_ligand_3d_distance.csv` | PDB 结构距离，静态资产 |
 | `results/notebooks/fig4/pdb/*.pdb` | 结构文件 |
 | `results/notebooks/cluster_validation/selected_cluster_k.csv` | 可选历史/S1 产物；主链路已改读 `CLUSTER_K=12` |
+
+### 参考序列
+参考序列已移到 `notebooks/data/refs/P04585.fasta` 和 `P04591.fasta`（体积很小，2.2KB），所以上传到 GitHub 后仍能复现。
