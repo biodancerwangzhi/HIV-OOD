@@ -1,5 +1,5 @@
 """
-fig3_protocol_summary.py
+step07_protocol_summary.py
 =================================
 从预计算的 AUROC 表和相似度统计中，产出 fig3 所需的所有中间结果 CSV。
 
@@ -17,7 +17,7 @@ fig3_protocol_summary.py
   random_minus_subtype_esm_nonlinear_drop.csv -- 逐药 AUROC 差值（ESM-nonlinear）
 
 运行方式（从项目根目录）：
-  python notebooks/scripts/fig3_protocol_summary.py
+  python notebooks/scripts/step07_protocol_summary.py
 """
 
 from __future__ import annotations

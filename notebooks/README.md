@@ -9,18 +9,18 @@
 
 ```
 notebooks/
-├── 00_data_preparation.ipynb   # 交互式数据准备（与 fig0_prepare_data.py 同口径）
+├── 00_data_preparation.ipynb   # 交互式数据准备（与 step01_prepare_data.py 同口径）
 ├── fig1.ipynb ~ fig5.ipynb     # 主图绘图
 ├── figS1.ipynb                 # 补充图（cluster k 可靠性）
 ├── scripts/
 │   ├── _common.py                      # 共享路径 / 模型（确定性 LGB）
-│   ├── fig0_prepare_data.py            # Full HIVDB → work/prepared + 00_data 统计
-│   ├── fig0_extract_embeddings.py      # ESM-2 mean embeddings → work/emb_full
-│   ├── fig3_protocol_benchmark.py      # ★ 唯一主结果表（3方法×4协议）
-│   ├── fig4_compute.py                 # Fig4 全流程（预测/中间表/机制/DRM）
-│   ├── fig5_compute.py                 # Fig5 全流程（消融/上位性/矩阵+Brier）
-│   ├── fig2_cross_split_similarity.py  # 跨 split Hamming 相似度
-│   ├── fig3_protocol_summary.py        # fig3 中间统计表
+│   ├── step01_prepare_data.py            # Full HIVDB → work/prepared + 00_data 统计
+│   ├── step02_extract_embeddings.py      # ESM-2 mean embeddings → work/emb_full
+│   ├── step03_protocol_benchmark.py      # ★ 唯一主结果表（3方法×4协议）
+│   ├── step04_fig4_compute.py                 # Fig4 全流程（预测/中间表/机制/DRM）
+│   ├── step05_fig5_compute.py                 # Fig5 全流程（消融/上位性/矩阵+Brier）
+│   ├── step06_cross_split_similarity.py  # 跨 split Hamming 相似度
+│   ├── step07_protocol_summary.py        # fig3 中间统计表
 │   └── run_all.sh                      # 一键按依赖顺序运行
 └── CURRENT_STATE.md
 ```
@@ -30,22 +30,22 @@ notebooks/
 ## 正确依赖顺序（唯一真相源）
 
 ```
-fig0_prepare_data.py
+step01_prepare_data.py
         │  work/prepared/*.csv
         │  results/notebooks/00_data/*
         ▼
-fig0_extract_embeddings.py          （可缓存跳过）
+step02_extract_embeddings.py          （可缓存跳过）
         │  work/emb_full/*
         ▼
         │  CLUSTER_K=12（_common.py 写死；figS1 可选）
         ▼
-fig3_protocol_benchmark.py          ★ 唯一主 AUROC 表
+step03_protocol_benchmark.py          ★ 唯一主 AUROC 表
         │  work/results/probe_protocol_full_selected_k.csv
         │  (+ 同步 probe_ood_full_selected_k.csv)
-        ├─► fig4_compute.py
-        ├─► fig5_compute.py
-        ├─► fig2_cross_split_similarity.py
-        └─► fig3_protocol_summary.py
+        ├─► step04_fig4_compute.py
+        ├─► step05_fig5_compute.py
+        ├─► step06_cross_split_similarity.py
+        └─► step07_protocol_summary.py
                 ▼
         fig1–fig5 / figS1 绘图 notebook
 ```
@@ -76,8 +76,8 @@ Python 默认使用 `venv/bin/python`（若存在）。
 ### Step 0 — 数据与 embedding（一次性）
 
 ```bash
-python notebooks/scripts/fig0_prepare_data.py
-python notebooks/scripts/fig0_extract_embeddings.py   # 需较长时间 / 建议有 GPU
+python notebooks/scripts/step01_prepare_data.py
+python notebooks/scripts/step02_extract_embeddings.py   # 需较长时间 / 建议有 GPU
 ```
 
 数据源：`work/hivdb_full/{CLASS}_DataSet.Full.txt` + `refs/*.fasta`  
@@ -92,13 +92,13 @@ Cluster OOD 使用固定 **`CLUSTER_K = 12`**（`notebooks/scripts/_common.py` �
 ### Step 2 — 主协议评测（核心）
 
 ```bash
-python notebooks/scripts/fig3_protocol_benchmark.py
+python notebooks/scripts/step03_protocol_benchmark.py
 ```
 
 ### Step 3 — Fig4
 
 ```bash
-python notebooks/scripts/fig4_compute.py
+python notebooks/scripts/step04_fig4_compute.py
 ```
 
 内部顺序：subtype OOD 预测 → scarcity/FC/barrier 中间表 → mechanism 汇总 → DRM burden。
@@ -108,7 +108,7 @@ python notebooks/scripts/fig4_compute.py
 ### Step 4 — Fig5
 
 ```bash
-python notebooks/scripts/fig5_compute.py
+python notebooks/scripts/step05_fig5_compute.py
 ```
 
 内部顺序：feature ablation → epistasis → benchmark matrix + Brier。
@@ -116,8 +116,8 @@ python notebooks/scripts/fig5_compute.py
 ### Step 5 — Fig2 / Fig3 汇总
 
 ```bash
-python notebooks/scripts/fig2_cross_split_similarity.py
-python notebooks/scripts/fig3_protocol_summary.py
+python notebooks/scripts/step06_cross_split_similarity.py
+python notebooks/scripts/step07_protocol_summary.py
 ```
 
 ### Step 6 — 绘图
@@ -150,13 +150,13 @@ venv/bin/python -m jupyter nbconvert --to notebook --execute --inplace notebooks
 
 | 脚本 | 状态 | 备注 |
 |---|---|---|
-| `fig0_prepare_data.py` | ✅ 已复现 | 输出与备份字节一致 |
-| `fig0_extract_embeddings.py` | ✅ 已复现 | CA 全量重提 npy/seqs 字节一致；全基因 seq 与 prepared 对齐；meta.seconds 为运行时字段可不同 |
-| `fig3_protocol_benchmark.py` | ✅ 已接受 baseline | 2026-07-27 04:56 `probe_protocol_full_selected_k.csv`（+08:37 ood 投影）；binary/esm_lr 跨跑锁死；esm_lgb 当前环境可复现；已删除 7/19 `.previous.csv` |
-| `fig4_compute.py` | ✅ 已复现 | 2026-07-27 23:41 baseline；二次重跑 00:01 15/15 字节一致（SHA256 全匹配） |
-| `fig5_compute.py` | ✅ 已复现 | 2026-07-28 strict baseline `_repro_backup_fig5_strict_20260728_071328`；Full prepared 口径；thread-pin + LR/LGB/XGB/PCA 确定性修复后 run1/run2 6/6 SHA256 全匹配 |
-| `fig2_cross_split_similarity.py` | ✅ 已复现 | 2026-07-28 `_repro_backup_fig2_20260728_092411`；CSV×2 与旧备份字节一致；run1/2/3 全文件含 npz 字节锁死；仅旧 npz 的 PI_cluster 明细与当前不同（汇总 4 位小数仍同） |
-| `fig3_protocol_summary.py` | ✅ 已复现 | 2026-07-28 `_repro_backup_fig3_summary_20260728_095443`；6/6 与旧备份字节一致；run1/run2 全匹配 |
+| `step01_prepare_data.py` | ✅ 已复现 | 输出与备份字节一致 |
+| `step02_extract_embeddings.py` | ✅ 已复现 | CA 全量重提 npy/seqs 字节一致；全基因 seq 与 prepared 对齐；meta.seconds 为运行时字段可不同 |
+| `step03_protocol_benchmark.py` | ✅ 已接受 baseline | 2026-07-27 04:56 `probe_protocol_full_selected_k.csv`（+08:37 ood 投影）；binary/esm_lr 跨跑锁死；esm_lgb 当前环境可复现；已删除 7/19 `.previous.csv` |
+| `step04_fig4_compute.py` | ✅ 已复现 | 2026-07-27 23:41 baseline；二次重跑 00:01 15/15 字节一致（SHA256 全匹配） |
+| `step05_fig5_compute.py` | ✅ 已复现 | 2026-07-28 strict baseline `_repro_backup_fig5_strict_20260728_071328`；Full prepared 口径；thread-pin + LR/LGB/XGB/PCA 确定性修复后 run1/run2 6/6 SHA256 全匹配 |
+| `step06_cross_split_similarity.py` | ✅ 已复现 | 2026-07-28 `_repro_backup_fig2_20260728_092411`；CSV×2 与旧备份字节一致；run1/2/3 全文件含 npz 字节锁死；仅旧 npz 的 PI_cluster 明细与当前不同（汇总 4 位小数仍同） |
+| `step07_protocol_summary.py` | ✅ 已复现 | 2026-07-28 `_repro_backup_fig3_summary_20260728_095443`；6/6 与旧备份字节一致；run1/run2 全匹配 |
 
 ## 复现性约定
 

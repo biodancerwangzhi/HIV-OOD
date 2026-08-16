@@ -1,5 +1,5 @@
 """
-fig2_cross_split_similarity.py
+step06_cross_split_similarity.py
 =======================================
 计算 fig2 所需的跨 split 序列相似度统计。
 
@@ -15,7 +15,7 @@ fig2_cross_split_similarity.py
   leakage_vs_binary_auc.csv    -- 泄漏率 vs binary-baseline AUROC
 
 运行方式（从项目根目录）：
-  python notebooks/scripts/fig2_cross_split_similarity.py
+  python notebooks/scripts/step06_cross_split_similarity.py
 """
 
 from __future__ import annotations

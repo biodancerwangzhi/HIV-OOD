@@ -6,7 +6,7 @@ Single entry point. Runs scripts in dependency order:
   3. fig5_benchmark_matrix.py
 
 Usage (from project root):
-  python notebooks/scripts/fig5_compute.py
+  python notebooks/scripts/step05_fig5_compute.py
 """
 from __future__ import annotations
 

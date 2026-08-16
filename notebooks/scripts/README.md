@@ -17,13 +17,13 @@ bash notebooks/scripts/run_all.sh
 | 脚本 | 作用 | 产出 |
 |---|---|---|
 | `_common.py` | 共享路径 / 确定性模型 | — |
-| `fig0_prepare_data.py` | Full HIVDB 重建序列+标签 | `work/prepared/*.csv` |
-| `fig0_extract_embeddings.py` | ESM-2 mean pool | `work/emb_full/*` |
-| `fig3_protocol_benchmark.py` | **唯一主 AUROC 表** | `probe_protocol_full_selected_k.csv` |
-| `fig4_compute.py` | Fig4 全流程（预测/中间表/机制/DRM） | `results/notebooks/fig4/*` |
-| `fig5_compute.py` | Fig5 全流程（消融/上位性/矩阵） | `work/results/probe_fig5.csv` 等 + `results/notebooks/fig5/*` |
-| `fig2_cross_split_similarity.py` | 泄漏/相似度 | `results/notebooks/fig2/*` |
-| `fig3_protocol_summary.py` | fig3 汇总 | `results/notebooks/fig3/*` |
+| `step01_prepare_data.py` | Full HIVDB 重建序列+标签 | `work/prepared/*.csv` |
+| `step02_extract_embeddings.py` | ESM-2 mean pool | `work/emb_full/*` |
+| `step03_protocol_benchmark.py` | **唯一主 AUROC 表** | `probe_protocol_full_selected_k.csv` |
+| `step04_fig4_compute.py` | Fig4 全流程（预测/中间表/机制/DRM） | `results/notebooks/fig4/*` |
+| `step05_fig5_compute.py` | Fig5 全流程（消融/上位性/矩阵） | `work/results/probe_fig5.csv` 等 + `results/notebooks/fig5/*` |
+| `step06_cross_split_similarity.py` | 泄漏/相似度 | `results/notebooks/fig2/*` |
+| `step07_protocol_summary.py` | fig3 汇总 | `results/notebooks/fig3/*` |
 
 ## 依赖顺序
 

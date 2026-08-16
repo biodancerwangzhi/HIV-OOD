@@ -5,32 +5,25 @@
    "id": "5455a6a6",
    "metadata": {},
    "source": [
-    "# Figure 3 · Choose the primary evaluation protocol and test ESM-nonlinear OOD stability\n",
+    "# Figure 3 · 选择主评测协议，并检验 ESM-nonlinear 的 OOD 稳定性\n",
     "\n",
-    "> Read-only: `work/results/probe_protocol_full_selected_k.csv` and Fig2 `cross_split_similarity.csv`. Cluster OOD k is fixed at 12. This figure does not train models; four-protocol × three-method AUROCs are frozen from `probe_protocol_full_selected_k.py` / the protocol table.\n",
+    "> 只读 `work/results/probe_protocol_full_selected_k.csv`、Fig2 的 `cross_split_similarity.csv` 和 Fig S1 的 `selected_cluster_k.csv`。本图不训练模型；四协议 × 三方法的 AUROC 已由 `probe_protocol_full_selected_k.py` 固化。\n",
     "\n",
-    "Core argument chain:\n",
+    "核心论证链：\n",
     "\n",
-    "- **3A｜Standardized evaluation pressure**: compare how strict the three non-random protocols are for the binary baseline.\n",
-    "- **3B｜AUROC drop from Random**: performance drop from Random to three strict protocols; check whether ESM-nonlinear drops less.\n",
-    "- **3C｜Subtype OOD method comparison**: under the chosen primary protocol, compare three methods' per-drug AUROC and mean CI on Subtype OOD.\n",
-    "- **3D｜Random CV overestimates a subset of drugs**: under ESM-nonlinear, show per-drug `Random CV − Subtype OOD` AUROC deltas—most drugs change little, a minority are clearly overestimated by Random CV.\n",
+    "- **3A｜Standardized evaluation pressure map**：先证明 Patient / Cluster / Subtype 三种非随机协议里，Subtype OOD 在多个标准化压力维度上最高。\n",
+    "- **3B｜AUROC drop from Random**：再看模型从 Random 到三种严格协议的性能下降，检验 ESM-nonlinear 是否掉得更少。\n",
+    "- **3C｜Subtype OOD method comparison**：聚焦选定的主评测方案，比较三方法在 Subtype OOD 下的逐药 AUROC 与均值 CI。\n",
+    "- **3D｜Random CV overestimates a subset of drugs**：在 ESM-nonlinear 模型下，按药物展示 `Random CV − Subtype OOD` 的 AUROC 差值，突出大多数药物变化较小、少数药物被 Random CV 明显高估。\n",
     "\n",
-    "Conclusion goal: Subtype OOD is strongest on subtype-shift and AUROC stress, so it is the primary evaluation scheme; under that scheme, ESM-nonlinear keeps the highest OOD performance, while Random CV mainly overstates reliability for a minority of drug tasks.\n"
+    "结论目标：Subtype OOD 在 subtype-shift 与 AUROC stress 上最强，因此作为主评测方案；在该方案下，ESM-nonlinear 保持最高 OOD 性能，而 Random CV 主要会高估少数药物任务的可靠性。"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 1,
    "id": "9de31ef0",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-08-15T09:02:07.400906Z",
-     "iopub.status.busy": "2026-08-15T09:02:07.400752Z",
-     "iopub.status.idle": "2026-08-15T09:02:11.028697Z",
-     "shell.execute_reply": "2026-08-15T09:02:11.027637Z"
-    }
-   },
+   "metadata": {},
    "outputs": [
     {
      "name": "stdout",
@@ -61,7 +54,7 @@
     "FIG2_OUT = PROJECT_ROOT / \"results\" / \"notebooks\" / \"fig2\"\n",
     "FIG_DIR = PROJECT_ROOT / \"figures\" / \"manuscript\" / \"fig3\"\n",
     "OUT_DIR = PROJECT_ROOT / \"results\" / \"notebooks\" / \"fig3\"\n",
-    "# Cluster OOD k fixed contract; CSV no longer required for main pipeline.\n",
+    "K_CSV = PROJECT_ROOT / \"results\" / \"notebooks\" / \"cluster_validation\" / \"selected_cluster_k.csv\"\n",
     "FIG_DIR.mkdir(parents=True, exist_ok=True)\n",
     "OUT_DIR.mkdir(parents=True, exist_ok=True)\n",
     "\n",
@@ -86,7 +79,7 @@
     "    \"font.family\": \"DejaVu Sans\",\n",
     "})\n",
     "\n",
-    "K_STAR = 12\n",
+    "K_STAR = int(pd.read_csv(K_CSV).iloc[0][\"k\"])\n",
     "protocol_path = RES / \"probe_protocol_full_selected_k.csv\"\n",
     "if not protocol_path.exists():\n",
     "    raise FileNotFoundError(\n",
@@ -132,14 +125,7 @@
    "cell_type": "code",
    "execution_count": 2,
    "id": "6cfe0e10",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-08-15T09:02:11.030608Z",
-     "iopub.status.busy": "2026-08-15T09:02:11.030423Z",
-     "iopub.status.idle": "2026-08-15T09:02:13.564002Z",
-     "shell.execute_reply": "2026-08-15T09:02:13.563207Z"
-    }
-   },
+   "metadata": {},
    "outputs": [
     {
      "name": "stdout",
@@ -160,14 +146,36 @@
     }
    ],
    "source": [
-    "# 3A: standardized evaluation-pressure map. Per column, percentile-rank across three non-random protocols; higher = stricter / more OOD.\n",
-    "# Load precomputed data (from notebooks/scripts/fig3_protocol_summary.py)\n",
-    "stress        = pd.read_csv(OUT_DIR / \"protocol_pressure_metrics.csv\")\n",
-    "stress_scaled = pd.read_csv(OUT_DIR / \"protocol_pressure_scaled.csv\")\n",
+    "# 3A：标准化评估压力图。每列按三种非随机协议的相对排序做 percentile-rank 标准化；越高 = 越严格 / 越 OOD。\n",
+    "leak_summary = leak.groupby(\"scheme\", as_index=False).agg(\n",
+    "    mean_maxsim=(\"mean_maxsim\", \"mean\"),\n",
+    "    frac_ge_099=(\"frac_ge_0.99\", \"mean\"),\n",
+    ")\n",
+    "leak_map = leak_summary.set_index(\"scheme\")\n",
     "\n",
-    "metric_cols   = [\"anti_leakage\", \"sequence_novelty\", \"subtype_shift\", \"auroc_stress\"]\n",
+    "stress_rows = []\n",
+    "for proto, scheme in [(\"rg\", \"patient\"), (\"clu\", \"cluster\"), (\"ood\", \"subtype\")]:\n",
+    "    drops = [auc[f\"random_{m}\"] - auc[f\"{proto}_{m}\"] for m in METHODS]\n",
+    "    all_drop = pd.concat(drops, ignore_index=True)\n",
+    "    stress_rows.append({\n",
+    "        \"protocol\": proto,\n",
+    "        \"protocol_label\": PROTO_LABEL[proto],\n",
+    "        \"anti_leakage\": 1 - float(leak_map.loc[scheme, \"frac_ge_099\"]),\n",
+    "        \"sequence_novelty\": 1 - float(leak_map.loc[scheme, \"mean_maxsim\"]),\n",
+    "        \"subtype_shift\": 1.0 if proto == \"ood\" else 0.0,\n",
+    "        \"auroc_stress\": float(all_drop.mean()),\n",
+    "    })\n",
+    "stress = pd.DataFrame(stress_rows)\n",
+    "metric_cols = [\"anti_leakage\", \"sequence_novelty\", \"subtype_shift\", \"auroc_stress\"]\n",
     "metric_labels = [\"Anti-leakage\", \"Sequence novelty\", \"Subtype shift\", \"AUROC stress\"]\n",
-    "protocol_order = [\"Patient\", \"Cluster\", \"Subtype\"]\n",
+    "\n",
+    "# Percentile-rank scaling avoids hard zeros while preserving within-column ordering.\n",
+    "stress_scaled = stress.copy()\n",
+    "for col in metric_cols:\n",
+    "    stress_scaled[col] = stress[col].rank(method=\"average\", pct=True)\n",
+    "stress[\"pressure_score\"] = stress_scaled[metric_cols].mean(axis=1)\n",
+    "stress.to_csv(OUT_DIR / \"protocol_pressure_metrics.csv\", index=False)\n",
+    "stress_scaled[[\"protocol\", \"protocol_label\", *metric_cols]].to_csv(OUT_DIR / \"protocol_pressure_scaled.csv\", index=False)\n",
     "\n",
     "fig, ax = plt.subplots(figsize=(7.8, 3.7))\n",
     "protocol_order = [\"Patient\", \"Cluster\", \"Subtype\"]\n",
@@ -204,14 +212,7 @@
    "cell_type": "code",
    "execution_count": 3,
    "id": "13288991",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-08-15T09:02:13.566404Z",
-     "iopub.status.busy": "2026-08-15T09:02:13.566050Z",
-     "iopub.status.idle": "2026-08-15T09:02:15.471351Z",
-     "shell.execute_reply": "2026-08-15T09:02:15.469941Z"
-    }
-   },
+   "metadata": {},
    "outputs": [
     {
      "name": "stdout",
@@ -232,9 +233,23 @@
     }
    ],
    "source": [
-    "# 3B: AUROC drop from Random to strict protocols; directly quantifies who is more stable.\n",
-    "# Load precomputed data (from notebooks/scripts/fig3_protocol_summary.py)\n",
-    "drop_summary = pd.read_csv(OUT_DIR / \"random_to_strict_protocol_drop.csv\")\n",
+    "# 3B：从 Random 到严格协议的 AUROC drop，直接量化谁更稳定。\n",
+    "drop_rows = []\n",
+    "for proto in STRICT_ORDER:\n",
+    "    for method in METHODS:\n",
+    "        vals = auc[f\"random_{method}\"] - auc[f\"{proto}_{method}\"]\n",
+    "        mean, lo, hi = boot_ci(vals.values)\n",
+    "        drop_rows.append({\n",
+    "            \"protocol\": proto,\n",
+    "            \"protocol_label\": PROTO_LABEL[proto],\n",
+    "            \"method\": method,\n",
+    "            \"method_label\": M_LABEL[method],\n",
+    "            \"mean_drop\": mean,\n",
+    "            \"ci_low\": lo,\n",
+    "            \"ci_high\": hi,\n",
+    "        })\n",
+    "drop_summary = pd.DataFrame(drop_rows)\n",
+    "drop_summary.to_csv(OUT_DIR / \"random_to_strict_protocol_drop.csv\", index=False)\n",
     "\n",
     "fig, ax = plt.subplots(figsize=(7.8, 4.4))\n",
     "x = np.arange(len(STRICT_ORDER)); w = 0.23\n",
@@ -266,14 +281,7 @@
    "cell_type": "code",
    "execution_count": 4,
    "id": "b44e497c",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-08-15T09:02:15.473107Z",
-     "iopub.status.busy": "2026-08-15T09:02:15.472968Z",
-     "iopub.status.idle": "2026-08-15T09:02:17.297125Z",
-     "shell.execute_reply": "2026-08-15T09:02:17.295735Z"
-    }
-   },
+   "metadata": {},
    "outputs": [
     {
      "name": "stdout",
@@ -294,9 +302,19 @@
     }
    ],
    "source": [
-    "# 3C: after choosing Subtype OOD as primary, compare three methods' per-drug AUROC and mean CI.\n",
-    "# Load precomputed data (from notebooks/scripts/fig3_protocol_summary.py)\n",
-    "subtype = pd.read_csv(OUT_DIR / \"subtype_ood_method_auc.csv\")\n",
+    "# 3C：选定 Subtype OOD 为主评测后，比较三方法逐药 AUROC 与均值 CI。\n",
+    "subtype_long = []\n",
+    "for method in METHODS:\n",
+    "    for _, r in auc.iterrows():\n",
+    "        subtype_long.append({\n",
+    "            \"class\": r[\"class\"],\n",
+    "            \"drug\": r[\"drug\"],\n",
+    "            \"method\": method,\n",
+    "            \"method_label\": M_LABEL[method],\n",
+    "            \"auroc\": r[f\"ood_{method}\"],\n",
+    "        })\n",
+    "subtype = pd.DataFrame(subtype_long)\n",
+    "subtype.to_csv(OUT_DIR / \"subtype_ood_method_auc.csv\", index=False)\n",
     "\n",
     "fig, ax = plt.subplots(figsize=(6.6, 4.8))\n",
     "x = np.arange(len(METHODS))\n",
@@ -330,14 +348,7 @@
    "cell_type": "code",
    "execution_count": 5,
    "id": "ac23b332",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-08-15T09:02:17.299613Z",
-     "iopub.status.busy": "2026-08-15T09:02:17.299327Z",
-     "iopub.status.idle": "2026-08-15T09:02:21.007323Z",
-     "shell.execute_reply": "2026-08-15T09:02:21.005675Z"
-    }
-   },
+   "metadata": {},
    "outputs": [
     {
      "name": "stdout",
@@ -369,9 +380,13 @@
     }
    ],
    "source": [
-    "# 3D: ranked per-drug ESM-nonlinear AUROC delta (Random CV − Subtype OOD).\n",
-    "# Load precomputed data (from notebooks/scripts/fig3_protocol_summary.py)\n",
-    "drop_df = pd.read_csv(OUT_DIR / \"random_minus_subtype_esm_nonlinear_drop.csv\")\n",
+    "# 3D：Random CV − Subtype OOD 的 ESM-nonlinear 药物 AUROC 差值排序图。\n",
+    "drop_df = auc[[\"class\", \"drug\", \"n_res\", \"random_esm_lgb\", \"ood_esm_lgb\"]].copy()\n",
+    "drop_df[\"drop\"] = drop_df[\"random_esm_lgb\"] - drop_df[\"ood_esm_lgb\"]\n",
+    "drop_df[\"abs_drop\"] = drop_df[\"drop\"].abs()\n",
+    "drop_df[\"status\"] = np.where(drop_df[\"drop\"] > 0.05, \"overestimated\", \"stable\")\n",
+    "drop_df = drop_df.sort_values(\"drop\", ascending=True).reset_index(drop=True)\n",
+    "drop_df.to_csv(OUT_DIR / \"random_minus_subtype_esm_nonlinear_drop.csv\", index=False)\n",
     "\n",
     "fig, ax = plt.subplots(figsize=(8.4, 0.34 * len(drop_df) + 1.7))\n",
     "y = np.arange(len(drop_df))\n",
@@ -413,16 +428,16 @@
    "id": "0c2d2fd6",
    "metadata": {},
    "source": [
-    "## Output artifacts\n",
+    "## 输出产物\n",
     "\n",
-    "| Panel | Figure | Table |\n",
+    "| 面板 | 图片 | 表格 |\n",
     "|---|---|---|\n",
     "| 3A | `figures/manuscript/fig3/fig3A_protocol_pressure.png` | `results/notebooks/fig3/protocol_pressure_metrics.csv`, `protocol_pressure_scaled.csv` |\n",
     "| 3B | `figures/manuscript/fig3/fig3B_random_to_strict_drop.png` | `results/notebooks/fig3/random_to_strict_protocol_drop.csv` |\n",
     "| 3C | `figures/manuscript/fig3/fig3C_subtype_ood_methods.png` | `results/notebooks/fig3/subtype_ood_method_auc.csv` |\n",
     "| 3D | `figures/manuscript/fig3/fig3D_random_minus_subtype_drop.png` | `results/notebooks/fig3/random_minus_subtype_esm_nonlinear_drop.csv` |\n",
     "\n",
-    "Suggested caption takeaway: Subtype OOD has the strongest deployment-relevant evaluation pressure among the non-random protocols. Under this primary test, ESM-nonlinear achieves the highest mean AUROC overall. Comparing Random CV against Subtype OOD shows that most drug tasks change little, but a subset is substantially overestimated by Random CV."
+    "推荐图注结论：Subtype OOD has the strongest deployment-relevant evaluation pressure among the non-random protocols. Under this primary test, ESM-nonlinear achieves the highest mean AUROC overall. Comparing Random CV against Subtype OOD shows that most drug tasks change little, but a subset is substantially overestimated by Random CV."
    ]
   },
   {
@@ -430,29 +445,22 @@
    "id": "7e4e6c97",
    "metadata": {},
    "source": [
-    "## Combined Figure 3 · panels A–D\n",
+    "## Combined Figure 3 · A–D 组图\n",
     "\n",
-    "Redraw A–D directly from intermediate tables and in-memory variables instead of reading single-panel PNGs, so fonts, sizes, line widths, and colors stay consistent in the combined figure.\n"
+    "从中间表和内存变量直接重绘 A–D，而不是读取单图 PNG。这样组图中的字体、字号、线宽和配色保持一致。"
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 6,
+   "execution_count": 12,
    "id": "dd9186df",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-08-15T09:02:21.011065Z",
-     "iopub.status.busy": "2026-08-15T09:02:21.010774Z",
-     "iopub.status.idle": "2026-08-15T09:02:32.011247Z",
-     "shell.execute_reply": "2026-08-15T09:02:32.010211Z"
-    }
-   },
+   "metadata": {},
    "outputs": [
     {
      "name": "stderr",
      "output_type": "stream",
      "text": [
-      "/tmp/ipykernel_31749/738265603.py:125: UserWarning: This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.\n",
+      "/tmp/ipykernel_17926/738265603.py:125: UserWarning: This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.\n",
       "  fig.tight_layout(rect=[0, 0, 1, 1])\n"
      ]
     },
@@ -460,8 +468,8 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "saved /mnt/c/Users/biodancer/Desktop/tmp_hiv/HIV-OOD/figures/manuscript/fig3/fig3_combined.png\n",
-      "saved /mnt/c/Users/biodancer/Desktop/tmp_hiv/HIV-OOD/figures/manuscript/fig3/fig3_combined.pdf\n"
+      "saved /mnt/d/我的项目/生信包复现重构升级/projects/1模型推理型/变异-耐药性预测/HIV-ESM-2/figures/manuscript/fig3/fig3_combined.png\n",
+      "saved /mnt/d/我的项目/生信包复现重构升级/projects/1模型推理型/变异-耐药性预测/HIV-ESM-2/figures/manuscript/fig3/fig3_combined.pdf\n"
      ]
     },
     {

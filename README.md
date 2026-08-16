@@ -1,16 +1,23 @@
-# HIV-ESM-2
+# HIV-OOD
 
 HIV drug-resistance prediction with **ESM-2 embeddings**, under **honest evaluation protocols** (Random / Patient / Cluster OOD / Subtype OOD).
 
-This repository contains the **reproducible compute scripts**, reference result tables, and manuscript figures for the OOD-focused analysis pipeline.
+This repository contains the **reproducible compute scripts** and plotting notebooks for the OOD-focused analysis pipeline. Result tables and manuscript figures are not tracked here; you regenerate them by running the pipeline.
 
 ## What this repo provides
 
+Shipped in the repository:
+
 - End-to-end scripts under `notebooks/scripts/`
-- Prepared tables + ESM embeddings under `work/`
-- Reference CSVs under `results/notebooks/`
-- Manuscript figures under `figures/manuscript/`
 - Plotting notebooks `notebooks/fig1.ipynb` … `fig5.ipynb`, `figS1.ipynb`
+- Raw HIVDB Full tables under `notebooks/data/hivdb_full/`
+- Reference sequences under `notebooks/data/refs/`
+
+Generated locally when you run the pipeline (git-ignored):
+
+- Prepared tables + ESM embeddings under `work/`
+- Per-figure intermediate CSVs under `results/notebooks/`
+- Manuscript figures under `figures/manuscript/`
 
 ## Quick start
 
@@ -23,11 +30,13 @@ source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -U pip
 pip install -r requirements.txt
 
-# Recommended: reuse shipped prepared data + embeddings
-bash notebooks/scripts/run_all.sh --skip-heavy
+# Full run from the shipped HIVDB Full tables.
+# Required on a fresh clone. The ESM embedding step is slow (GPU optional).
+bash notebooks/scripts/run_all.sh
 
-# Full rebuild from HIVDB Full text (slow; ESM embedding step needs time/GPU optional)
-# bash notebooks/scripts/run_all.sh
+# Later runs, once work/prepared + work/emb_full exist locally:
+# skips data prep, embedding extraction, and the O(n^2) fig2 Hamming step.
+# bash notebooks/scripts/run_all.sh --skip-heavy
 ```
 
 Plot:
@@ -44,17 +53,17 @@ Detailed order and notes: [`notebooks/README.md`](notebooks/README.md).
 ## Pipeline (short)
 
 ```
-fig0_prepare_data.py
+step01_prepare_data.py
         → work/prepared/*.csv
-fig0_extract_embeddings.py
+step02_extract_embeddings.py
         → work/emb_full/*
 CLUSTER_K = 12   # fixed in notebooks/scripts/_common.py
-fig3_protocol_benchmark.py   # main AUROC table
+step03_protocol_benchmark.py   # main AUROC table
         → work/results/probe_protocol_full_selected_k.csv
-        ├─ fig4_compute.py
-        ├─ fig5_compute.py
-        ├─ fig2_cross_split_similarity.py
-        └─ fig3_protocol_summary.py
+        ├─ step04_fig4_compute.py
+        ├─ step05_fig5_compute.py
+        ├─ step06_cross_split_similarity.py
+        └─ step07_protocol_summary.py
 ```
 
 **Main result table:** `work/results/probe_protocol_full_selected_k.csv`
@@ -76,40 +85,53 @@ Bit-exact CSV identity is expected **in the same environment** after the determi
 Canonical raw inputs (Stanford HIV Drug Resistance Database genotype–phenotype Full sets):
 
 ```
-work/hivdb_full/{PI,NRTI,NNRTI,INI,CAI}_DataSet.Full.txt
+notebooks/data/hivdb_full/{PI,NRTI,NNRTI,INI,CAI}_DataSet.Full.txt
+```
+
+These are shipped in the repository (~9.8 MB), so a fresh clone can rebuild everything.
+
 Please cite HIVDB when using these data:
 
 > Rhee SY et al. Human immunodeficiency virus reverse transcriptase and protease sequence database. *Nucleic Acids Research*.
 > Website: https://hivdb.stanford.edu/
 
-Derived artifacts:
+Derived artifacts, all rebuilt by the pipeline and none of them tracked in git:
 
 | Path | Role |
 |---|---|
 | `work/prepared/*.csv` | sequences + labels |
-| `work/emb_full/*` | ESM-2 mean embeddings (can be recomputed) |
-| `results/notebooks/fig4/pdb/*` | static structure files |
-| `results/notebooks/fig4/fig4_ram_to_ligand_3d_distance.csv` | static distance table |
+| `work/emb_full/*` | ESM-2 mean embeddings (recomputed by `step02`) |
+| `work/results/*.csv` | main probe/protocol tables |
+| `results/notebooks/*` | per-figure intermediate CSVs |
 
 ## Repository layout
 
+Tracked in the repository:
+
 ```
-HIV-ESM-2/
+HIV-OOD/
 ├── README.md
 ├── requirements.txt
 ├── .gitignore
-├── notebooks/
-│   ├── README.md              # run order (source of truth)
-│   ├── fig1.ipynb … fig5.ipynb / figS1.ipynb
-│   └── scripts/               # all compute entrypoints
+└── notebooks/
+    ├── README.md              # run order (source of truth)
+    ├── fig1.ipynb … fig5.ipynb / figS1.ipynb
+    ├── scripts/               # all compute entrypoints
+    └── data/
+        ├── hivdb_full/        # raw HIVDB Full tables
+        └── refs/              # P04585 / P04591 reference FASTA
+```
+
+Created locally when you run the pipeline (git-ignored):
+
+```
+HIV-OOD/
 ├── work/
-│   ├── hivdb_full/            # raw Full tables + refs
 │   ├── prepared/              # cleaned tables
 │   ├── emb_full/              # embeddings
 │   └── results/               # main probe CSVs
 ├── results/notebooks/         # per-figure intermediate CSVs
-├── figures/manuscript/        # paper figures
-└── docs/                      # notes + upload guide
+└── figures/manuscript/        # paper figures
 ```
 
 ## License
@@ -122,8 +144,8 @@ Code license is not finalized in-repo yet. Add a `LICENSE` before making the rep
 
 ### 原始数据下载（HIVDB Full genotype-phenotype tables）
 ```bash
-python notebooks/scripts/fig0_download_hivdb.py
+python notebooks/scripts/step00_download_hivdb.py
 ```
-下载后运行 `fig0_prepare_data.py` 即可。
+下载后运行 `step01_prepare_data.py` 即可。
 
 **注意**：Stanford HIVDB 会在定期更新这些表。复现论文结果时建议使用固定快照（若有），否则 AUROC 会略有浮动。

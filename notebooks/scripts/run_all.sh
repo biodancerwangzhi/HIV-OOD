@@ -26,10 +26,10 @@ S="notebooks/scripts"
 # 0) Data + embeddings (heavy / one-time)
 if [[ $SKIP_HEAVY -eq 0 ]]; then
   echo "[0a] Prepare Full HIVDB tables → work/prepared/*.csv + results/notebooks/00_data/"
-  $PYTHON $S/fig0_prepare_data.py
+  $PYTHON $S/step01_prepare_data.py
 
   echo "[0b] Extract ESM-2 embeddings → work/emb_full/*.npy"
-  $PYTHON $S/fig0_extract_embeddings.py
+  $PYTHON $S/step02_extract_embeddings.py
 else
   echo "[0a/0b] SKIPPED (--skip-heavy); requiring existing work/prepared + work/emb_full"
   [[ -f work/prepared/PI.csv ]] || { echo "missing work/prepared/PI.csv"; exit 1; }
@@ -45,28 +45,28 @@ echo ""
 
 # 2) Single source of truth for protocol AUROCs (fig3 owns probe_* tables)
 echo "[2] Protocol benchmark (3 methods × 4 protocols) → probe_protocol_full_selected_k.csv"
-$PYTHON $S/fig3_protocol_benchmark.py
+$PYTHON $S/step03_protocol_benchmark.py
 echo ""
 
 # 3) Fig4 (single entry)
 echo "[3] Fig4 pipeline → results/notebooks/fig4/"
-$PYTHON $S/fig4_compute.py
+$PYTHON $S/step04_fig4_compute.py
 echo ""
 
 # 4) Fig5 (single entry)
 echo "[4] Fig5 pipeline → work/results/probe_fig5.csv + probe_q5_epistasis.csv + results/notebooks/fig5/"
-$PYTHON $S/fig5_compute.py
+$PYTHON $S/step05_fig5_compute.py
 echo ""
 
 # 5) Fig2 similarity then fig3 summaries
 if [[ $SKIP_HEAVY -eq 0 ]]; then
   echo "[5] Cross-split Hamming similarity → results/notebooks/fig2/"
-  $PYTHON $S/fig2_cross_split_similarity.py
+  $PYTHON $S/step06_cross_split_similarity.py
 else
   echo "[5] SKIPPED fig2 Hamming (--skip-heavy)"
 fi
 echo "[6] Fig3 protocol summary tables"
-$PYTHON $S/fig3_protocol_summary.py
+$PYTHON $S/step07_protocol_summary.py
 echo ""
 
 echo "=== All computation scripts finished ==="
