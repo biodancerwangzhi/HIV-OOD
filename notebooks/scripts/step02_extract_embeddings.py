@@ -26,7 +26,7 @@ PROJ = Path(__file__).resolve().parent.parent.parent
 PREP = PROJ / "work" / "prepared"
 REF_DIR = PROJ / "notebooks" / "data" / "refs"
 OUT_DIR = PROJ / "work" / "emb_full"
-GENE_OF_CLASS = {"PI": "PR", "NRTI": "RT", "NNRTI": "RT", "INI": "IN", "CAI": "CA"}
+GENE_OF_CLASS = {"PI": "PR", "NRTI": "RT", "NNRTI": "RT", "INSTI": "IN", "CAI": "CA"}
 REPR_LAYER = 33
 
 

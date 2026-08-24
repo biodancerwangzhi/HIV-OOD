@@ -4,7 +4,7 @@ step06_cross_split_similarity.py
 计算 fig2 所需的跨 split 序列相似度统计。
 
 输入（均为预计算产物，必须已存在）：
-  work/prepared/{PI,NRTI,NNRTI,INI}.csv
+  work/prepared/{PI,NRTI,NNRTI,INSTI}.csv
   work/emb_full/{PR,RT,IN}_mean.npy
   work/emb_full/{PR,RT,IN}_seqs.json
   work/results/probe_protocol_full_selected_k.csv
@@ -45,8 +45,8 @@ RES     = PROJECT_ROOT / "work" / "results"
 OUT_DIR = PROJECT_ROOT / "results" / "notebooks" / "fig2"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-MAIN_CLASSES = ["PI", "NRTI", "NNRTI", "INI"]
-GENE_OF      = {"PI": "PR", "NRTI": "RT", "NNRTI": "RT", "INI": "IN"}
+MAIN_CLASSES = ["PI", "NRTI", "NNRTI", "INSTI"]
+GENE_OF      = {"PI": "PR", "NRTI": "RT", "NNRTI": "RT", "INSTI": "IN"}
 
 
 def _require(path: Path) -> Path:

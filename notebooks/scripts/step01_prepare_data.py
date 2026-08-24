@@ -1,19 +1,19 @@
 """Prepare HIVDB Full genotype-phenotype tables for all downstream scripts.
 
 Canonical raw inputs live under notebooks/data/hivdb_full/:
-  {PI,NRTI,NNRTI,INI,CAI}_DataSet.Full.txt
+  {PI,NRTI,NNRTI,INSTI,CAI}_DataSet.Full.txt
 notebooks/data/refs/P04585.fasta
   notebooks/data/refs/P04591.fasta
 
 Optional download from Stanford HIVDB (tables may update over time):
   mkdir -p notebooks/data/hivdb_full
   cd notebooks/data/hivdb_full
-  for f in PI NRTI NNRTI INI CAI; do
+  for f in PI NRTI NNRTI INSTI CAI; do
     curl -L -O "https://hivdb.stanford.edu/download/GenoPhenoDatasets/${f}_DataSet.Full.txt"
   done
 
 Outputs:
-  work/prepared/{PI,NRTI,NNRTI,INI,CAI}.csv
+  work/prepared/{PI,NRTI,NNRTI,INSTI,CAI}.csv
   work/prepared/summary.json
   results/notebooks/00_data/*.csv
 """
@@ -36,11 +36,11 @@ PAPER_DRUGS = {
     "PI": ["FPV", "ATV", "IDV", "LPV", "NFV", "SQV", "TPV", "DRV"],
     "NRTI": ["3TC", "ABC", "AZT", "D4T", "DDI", "TDF"],
     "NNRTI": ["EFV", "ETR", "NVP", "RPV"],
-    "INI": ["RAL", "EVG", "DTG", "BIC", "CAB"],
+    "INSTI": ["RAL", "EVG", "DTG", "BIC", "CAB"],
     "CAI": ["LEN"],
 }
-GENE_OF_CLASS = {"PI": "PR", "NRTI": "RT", "NNRTI": "RT", "INI": "IN", "CAI": "CA"}
-CLASS_ORDER = ["PI", "NRTI", "NNRTI", "INI", "CAI"]
+GENE_OF_CLASS = {"PI": "PR", "NRTI": "RT", "NNRTI": "RT", "INSTI": "IN", "CAI": "CA"}
+CLASS_ORDER = ["PI", "NRTI", "NNRTI", "INSTI", "CAI"]
 FC_RESISTANT = 3.0
 GAP_CHARS = {"-", ".", ""}
 DEL_CHARS = {"~"}

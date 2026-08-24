@@ -85,7 +85,7 @@ Bit-exact CSV identity is expected **in the same environment** after the determi
 Canonical raw inputs (Stanford HIV Drug Resistance Database genotype–phenotype Full sets):
 
 ```
-notebooks/data/hivdb_full/{PI,NRTI,NNRTI,INI,CAI}_DataSet.Full.txt
+notebooks/data/hivdb_full/{PI,NRTI,NNRTI,INSTI,CAI}_DataSet.Full.txt
 ```
 
 These are shipped in the repository (~9.8 MB), so a fresh clone can rebuild everything.

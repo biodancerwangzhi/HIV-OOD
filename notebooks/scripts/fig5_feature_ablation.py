@@ -35,12 +35,12 @@ EMB = PROJ / "work" / "emb_full"
 PREP = PROJ / "work" / "prepared"
 REF_DIR = PROJ / "notebooks" / "data" / "refs"
 OUT = PROJ / "work" / "results" / "probe_fig5.csv"
-GENE_OF = {"PI": "PR", "NRTI": "RT", "NNRTI": "RT", "INI": "IN"}
+GENE_OF = {"PI": "PR", "NRTI": "RT", "NNRTI": "RT", "INSTI": "IN"}
 DRUGS = {
     "PI": ["FPV", "ATV", "IDV", "LPV", "NFV", "SQV", "TPV", "DRV"],
     "NRTI": ["3TC", "ABC", "AZT", "D4T", "DDI", "TDF"],
     "NNRTI": ["EFV", "ETR", "NVP", "RPV"],
-    "INI": ["RAL", "EVG", "DTG", "BIC", "CAB"],
+    "INSTI": ["RAL", "EVG", "DTG", "BIC", "CAB"],
 }
 
 

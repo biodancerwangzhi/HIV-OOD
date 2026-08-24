@@ -46,7 +46,7 @@ PRED_DATA = PROJECT_ROOT / "results" / "notebooks" / "fig4" / "fig4_subtype_ood_
 OUT_DIR   = PROJECT_ROOT / "results" / "notebooks" / "fig5"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-CLASS_ORDER = ["PI", "NRTI", "NNRTI", "INI"]
+CLASS_ORDER = ["PI", "NRTI", "NNRTI", "INSTI"]
 
 
 def _require(path: Path) -> Path:

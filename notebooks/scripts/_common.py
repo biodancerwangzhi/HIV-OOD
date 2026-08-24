@@ -53,14 +53,14 @@ CLUSTER_K = 12  # fixed contract for Cluster OOD (no longer selected at runtime)
 N_SPLITS = 5
 FC_RESISTANT = 3.0
 
-GENE_OF = {"PI": "PR", "NRTI": "RT", "NNRTI": "RT", "INI": "IN", "CAI": "CA"}
+GENE_OF = {"PI": "PR", "NRTI": "RT", "NNRTI": "RT", "INSTI": "IN", "CAI": "CA"}
 DRUGS = {
     "PI": ["FPV", "ATV", "IDV", "LPV", "NFV", "SQV", "TPV", "DRV"],
     "NRTI": ["3TC", "ABC", "AZT", "D4T", "DDI", "TDF"],
     "NNRTI": ["EFV", "ETR", "NVP", "RPV"],
-    "INI": ["RAL", "EVG", "DTG", "BIC", "CAB"],
+    "INSTI": ["RAL", "EVG", "DTG", "BIC", "CAB"],
 }
-MAIN_CLASSES = ["PI", "NRTI", "NNRTI", "INI"]
+MAIN_CLASSES = ["PI", "NRTI", "NNRTI", "INSTI"]
 METHODS = ["binary", "esm_lr", "esm_lgb"]
 
 
